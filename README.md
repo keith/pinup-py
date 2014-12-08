@@ -13,3 +13,12 @@ pinup 5
 
 This opens the 5 most recent untagged and unread posts, the deletes them
 from pinboard.
+
+## Install
+
+Install with homebrew:
+
+```
+brew tap Keithbsmiley/formulae
+brew install pinup
+```
