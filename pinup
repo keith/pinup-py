@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+
+from webbrowser import open_new_tab
+import netrc
+import requests
+import sys
+
+API_URL = "https://api.pinboard.in/v1/"
+DELETE_URL = API_URL + "posts/delete"
+POSTS_URL = API_URL + "posts/all"
+
+
+def params(params={}):
+    return dict({"format": "json",
+                 "auth_token": token("pinboard.in")}.items()
+                + params.items())
+
+
+class Bookmark:
+    def __init__(self, item):
+        self.url = item["href"]
+        self.unread = item["toread"] == "yes"
+        self.hastags = len(item["tags"]) != 0
+
+    def delete(self):
+        requests.get(DELETE_URL, params=params({"url": self.url}))
+
+
+def token(machine):
+    n = netrc.netrc()
+    auth = n.authenticators(machine)
+    if auth is None:
+        sys.exit("Add %s to your ~/.netrc" % machine)
+
+    user = auth[0] or auth[1]
+    password = auth[2]
+
+    if user is None or password is None:
+        sys.exit("Invalid netrc entry for %s" % machine)
+
+    return "%s:%s" % (user, password)
+
+
+def get_items():
+    r = requests.get(POSTS_URL, params=params())
+    items = map(Bookmark, r.json())
+    return [item for item in items if item.unread or not item.hastags]
+
+
+def usage(prg):
+    print("Usage: %s [COUNT]" % prg)
+    sys.exit(2)
+
+
+def main(count):
+    items = get_items()
+    for i in range(count):
+        if i >= len(items):
+            break
+
+        item = items[i]
+        if open_new_tab(item.url):
+            item.delete()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        usage(sys.argv[0])
+    try:
+        count = int(sys.argv[1])
+        main(count)
+    except ValueError:
+        usage(sys.argv[0])
