@@ -1,3 +1,8 @@
+## DEPRECATED
+
+`pinup` has been replaced by my [collection of
+scripts](https://github.com/keith/pinboard/) for Pinboard.
+
 # pinup
 
 This is a replacement for
